@@ -1,8 +1,8 @@
 # Tasks
 ## All
-- [ ] Shift some pixels @f-prettyland
+- [ ] Shift some pixels
 	- [ ] What to do underneath?
-			+	[ ] Nothing
+			+	[X] Nothing
 			+ [ ] Sort
-- [ ] Randomly ignore some cols/rows
-- [ ] Interactive area select
+- [X] Randomly ignore some cols/rows
+- [ ] Interactive area select @f-prettyland
