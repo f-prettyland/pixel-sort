@@ -2,13 +2,13 @@ PImage img;
 // int 		iteration_limit = 200;
 // int 		offset = 4;
 int 		iteration_limit = 1;
-int 		offset = 40;
+int 		offset = 80;
 int 		iter_frame_rate = 3;
 int 		normal_frame_rate = 30;
 int 		block_size = 1;
 float   shift_block_chance = 0.2;
-float   down_chance = 1;
-float   up_dampening = 0.4;
+float   down_chance = 0.8;
+float   up_dampening = 0.8;
 float   down_dampening = 1.0;
 float unit = 100;
 
@@ -135,7 +135,7 @@ void iterateColBlocks(){
 		if(random(1) < shift_block_chance){
 			int rand_offset = round(random(offset) * down_dampening);
 			if(random(1) > down_chance){
-				rand_offset = round(random(offset)* up_dampening);
+				rand_offset = (-1)*round(random(offset)* up_dampening);
 			}
 			for(PVector pix : line){
 				int x = (int) pix.x;
