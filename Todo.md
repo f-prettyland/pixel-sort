@@ -6,9 +6,10 @@
 			+ [ ] Sort
 			+ [ ] Copy nearby cells? Somehow do intelligently? <sub>Yah sure</sub>
 - [X] Randomly ignore some cols/rows
-- [ ] Interactive area select @f-prettyland
+- [ ] Colour select
+- [X] Interactive area select
 	+ [X] draw a shape
-	+ [ ] point in polygon
-	+ [ ] create optional drag rather than current mandatory
+	+ [X] point in polygon
 - [ ] Fix limits for animation melting
+- [ ] Follow the melting lines down  @f-prettyland
 - [ ] Config file
