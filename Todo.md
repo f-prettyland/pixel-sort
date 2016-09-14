@@ -12,4 +12,4 @@
 	+ [X] point in polygon
 - [ ] Fix limits for animation melting
 - [ ] Follow the melting lines down  @f-prettyland
-- [ ] Config file
+- [X] Config file

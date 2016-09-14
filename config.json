@@ -1,0 +1,14 @@
+{
+	"iteration_limit" : "1",
+	"offset_scaler" : "1.2",
+	"iter_frame_rate" : "3",
+	"normal_frame_rate" : "30",
+	"shift_block_chance" : "0.2",
+	"down_chance" : "0.8",
+	"up_dampening" : "0.5",
+	"down_dampening" : "1.0",
+	"save_file_name" : "../out/outting",
+	"save_file_type" : ".png",
+	"image_file" : "../input/github-logo.png",
+	"flash_selection" : "false",
+}

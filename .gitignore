@@ -5,3 +5,6 @@ application.linux64
 application.windows32
 application.windows64
 application.macosx
+out/*
+!out/.keep
+!out/outting-002468.png

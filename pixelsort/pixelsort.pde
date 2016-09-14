@@ -1,35 +1,76 @@
+static final String   DEFAULT_CONFIG_FILE_PATH    = "config.json";
+
 PImage img;
-// int 		iteration_limit = 200;
-// int 		offset = 4;
-int 		iteration_limit = 1;
-int 		offset = 80;
-int 		iter_frame_rate = 3;
-int 		normal_frame_rate = 30;
-int 		block_size = 1;
-float   shift_block_chance = 0.2;
-float   down_chance = 0.8;
-float   up_dampening = 0.8;
-float   down_dampening = 1.0;
-float unit = 100;
-
-boolean   flash_selection = false;
-
 int iteration_number = 0;
-int begin_x = 0;
-int begin_y = 0;
-int end_x = 0;
-int end_y = 0;
-boolean mod_mode = false;
+boolean melt_mode = false;
 boolean marked_pips = false;
 ArrayList<PShape> points = new ArrayList<PShape>();;
 ArrayList<ArrayList<PVector>> lines =  new ArrayList<ArrayList<PVector>>();
+float unit = 100;
 PShape s;
 boolean pip[][];
+Config global_config;
+
+/**
+ * Stores the current configuration state of the application.
+ */
+class Config {
+	// int 		iteration_limit = 200;
+	// int 		offset_scaler = 0.01;
+	int 		iteration_limit = 1;
+	float 	offset_scaler = 1.2;
+	int 		iter_frame_rate = 3;
+	int 		normal_frame_rate = 30;
+	float   shift_block_chance = 0.2;
+	float   down_chance = 0.8;
+	float   up_dampening = 0.5;
+	float   down_dampening = 1.0;
+	String 	save_file_name = "../out/outting";
+	String 	save_file_type = ".png";
+	String 	image_file = "../input/github-logo.png";
+	// String 	image_file = "../input/love.jpg";
+	// String 	image_file = "../input/almost-drone-hit.jpg";
+	boolean   flash_selection = false;
+
+	/**
+	 * Attempt to load configuration values from a JSON file.
+	 *
+	 * @param path Path to the configuration file.
+	 */
+	boolean load_from_file(String path) {
+		File config_file = new File(path);
+
+		JSONObject json = loadJSONObject(path);
+
+		this.iteration_limit = json.getInt("iteration_limit", this.iteration_limit);
+		this.offset_scaler = json.getFloat("offset_scaler", this.offset_scaler);
+		this.iter_frame_rate = json.getInt("iter_frame_rate", this.iter_frame_rate);
+		this.normal_frame_rate =
+			json.getInt("normal_frame_rate", this.normal_frame_rate);
+		this.shift_block_chance =
+			json.getFloat("shift_block_chance", this.shift_block_chance);
+		this.down_chance = json.getFloat("down_chance", this.down_chance);
+		this.up_dampening = json.getFloat("up_dampening", this.up_dampening);
+		this.down_dampening = json.getFloat("down_dampening", this.down_dampening);
+
+		this.save_file_name = json.getString("save_file_name", this.save_file_name);
+		this.save_file_type = json.getString("save_file_type", this.save_file_type);
+		this.image_file = json.getString("image_file", this.image_file);
+
+		this.flash_selection =
+			json.getBoolean("flash_selection", this.flash_selection);
+
+		return true;
+	}
+}
 
 
 void settings() {
-	img = loadImage("../love.jpg");
-	// img = loadImage("../almost-drone-hit.jpg");
+	global_config = new Config();
+
+	global_config.load_from_file(DEFAULT_CONFIG_FILE_PATH);
+
+	img = loadImage(global_config.image_file);
 	size(img.width, img.height);
 }
 
@@ -37,14 +78,13 @@ void setup() {
 	noFill();
 	stroke(255);
 	image(img, 0, 0);
-	frameRate(normal_frame_rate);
+	frameRate(global_config.normal_frame_rate);
 	pip = new boolean[width][height];
 }
 
 void draw() {
-	// rect(begin_x,begin_y,end_x-begin_x,end_y-begin_y);
-
-	if(!mod_mode ){
+	// if user drawing stuff
+	if(!melt_mode){
 		if (mousePressed) {
 			int mx = constrain(mouseX, 0, img.width-1);
 			int my = constrain(mouseY, 0, img.height-1);
@@ -60,8 +100,9 @@ void draw() {
 		points.clear();
 		image(img, 0, 0);
 
-		frameRate(iter_frame_rate);
+		frameRate(global_config.iter_frame_rate);
 
+		// Figures out what pixels are in the shape and of these, which are in line
 		if (!marked_pips) {
 			for (int x = 0; x < (width); x++) {
 				for (int y = 0; y < (height); y++) {
@@ -75,43 +116,48 @@ void draw() {
 			marked_pips = true;
 		}
 
-		// && !list_init
-		//  NOT someList.Length == 0
-		// iterate over all points, find those in poly and build a list
-
-		if(mod_mode && iteration_number < iteration_limit){
+		// iterate over lines in the
+		if(melt_mode && iteration_number < global_config.iteration_limit){
 			img.loadPixels();
 			iterateColBlocks();
 			img.updatePixels();
 			image(img, 0, 0);
 			iteration_number++;
 		}else{
-			mod_mode = false;
-			frameRate(normal_frame_rate);
+			melt_mode = false;
+			frameRate(global_config.normal_frame_rate);
 		}
 
 	}
 
+	// Draw the shape the user input and set correct flags to begin melt
+	//   unless it was q, then just save it
 	if (keyPressed) {
-		frameRate(normal_frame_rate);
-		iteration_number =0;
-		mod_mode = true;
-		if(points.size()>0){
-			marked_pips = false;
-			pip = new boolean[width][height];
-			lines.clear();
+		if (key == 'q')
+		{
+			saveFrame(global_config.save_file_name + "-######"
+				+ global_config.save_file_type);
+		}else{
+			frameRate(global_config.normal_frame_rate);
+			iteration_number =0;
+			melt_mode = true;
+			if(points.size()>0){
+				marked_pips = false;
+				pip = new boolean[width][height];
+				lines.clear();
+			}
+			s = createShape();
+			s.beginShape();
+			s.noStroke();
+			for(PShape a_point : points){
+				PVector a_point_coord = a_point.getVertex(0);
+				s.vertex(a_point_coord.x, a_point_coord.y);
+			}
+			if(global_config.flash_selection)
+				s.fill(0, 0, 0);
+			s.endShape(CLOSE);
+			shape(s, 0, 0);
 		}
-		s = createShape();
-		s.beginShape();
-		s.noStroke();
-		for(PShape a_point : points){
-			PVector a_point_coord = a_point.getVertex(0);
-			s.vertex(a_point_coord.x, a_point_coord.y);
-		}
-		if(flash_selection)
-			s.fill(0, 0, 0);
-		s.endShape(CLOSE);
-		shape(s, 0, 0);
 	}
 
 }
@@ -130,12 +176,19 @@ void checkColBeneath(int start_x, int start_y, int lines_index){
 
 
 void iterateColBlocks(){
-	// for(int count = begin_x; count < end_x-block_size; count=count+block_size){
 	for(ArrayList<PVector> line : lines){
-		if(random(1) < shift_block_chance){
-			int rand_offset = round(random(offset) * down_dampening);
-			if(random(1) > down_chance){
-				rand_offset = (-1)*round(random(offset)* up_dampening);
+		if(random(1) < global_config.shift_block_chance){
+			int rand_offset = round(
+				random(line.size()) *
+				global_config.offset_scaler  *
+				global_config.down_dampening
+			);
+			if(random(1) > global_config.down_chance){
+				rand_offset = (-1)*round(
+					random(line.size()) *
+					global_config.offset_scaler *
+					global_config.up_dampening
+				);
 			}
 			for(PVector pix : line){
 				int x = (int) pix.x;
@@ -148,36 +201,39 @@ void iterateColBlocks(){
 	}
 }
 
-void shiftUpBlock(int count_mess, int begin_y){
-	int rand_offset = round(random(offset)* up_dampening);
-	for(int x = count_mess; x < count_mess+block_size; x++){
-		for(int y = begin_y-rand_offset; y < end_y+rand_offset; y++){
-			img.pixels[x + (y-rand_offset) * img.width] =
-				img.pixels[x + y * img.width];
-		}
-	}
-}
+// ------- DEPRICATED -------
+// old methods of shifting by pixels in given range
 
-void shiftDownBlock(int count_mess, int begin_y){
-	int rand_offset = round(random(offset) * down_dampening);
-	for(int x = count_mess; x < count_mess+block_size; x++){
-		for(int y = end_y+rand_offset; y > begin_y+rand_offset; y--){
-			img.pixels[x + (y+rand_offset) * img.width] =
-				img.pixels[x + y * img.width];
-		}
-	}
-}
-
-void drawSomeNoooooise() {
-	float noiseScale = 0.02;
-	for (int x=0; x < width; x++) {
-		for (int y=0; y < width; y++) {
-			float noiseVal = noise(x*noiseScale, y*noiseScale);
-			stroke(noiseVal*255);
-			point(x,y);
-		}
-	}
-}
+// void shiftUpBlock(int count_mess, int begin_y){
+// 	int rand_offset = round(random(offset)* up_dampening);
+// 	for(int x = count_mess; x < count_mess+block_size; x++){
+// 		for(int y = begin_y-rand_offset; y < end_y+rand_offset; y++){
+// 			img.pixels[x + (y-rand_offset) * img.width] =
+// 				img.pixels[x + y * img.width];
+// 		}
+// 	}
+// }
+//
+// void shiftDownBlock(int count_mess, int begin_y){
+// 	int rand_offset = round(random(offset) * down_dampening);
+// 	for(int x = count_mess; x < count_mess+block_size; x++){
+// 		for(int y = end_y+rand_offset; y > begin_y+rand_offset; y--){
+// 			img.pixels[x + (y+rand_offset) * img.width] =
+// 				img.pixels[x + y * img.width];
+// 		}
+// 	}
+// }
+//
+// void drawSomeNoooooise() {
+// 	float noiseScale = 0.02;
+// 	for (int x=0; x < width; x++) {
+// 		for (int y=0; y < width; y++) {
+// 			float noiseVal = noise(x*noiseScale, y*noiseScale);
+// 			stroke(noiseVal*255);
+// 			point(x,y);
+// 		}
+// 	}
+// }
 
 // Algorithm taken with love from
 //  http://forum.processing.org/topic/how-do-i-find-if-a-point-is-inside-a-complex-polygon.html
