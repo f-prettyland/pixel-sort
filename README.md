@@ -6,7 +6,7 @@ draw an area to shift about in. Also allows for multiple iterations of shifting.
 From
 ![](/input/github-logo.png)
 To
-![](/out/out/outting-002468.png)
+![](/out/outting-002468.png)
 
 ## Using
 1. Use the config to edit values, see end of readme for details on that.
