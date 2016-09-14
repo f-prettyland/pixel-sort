@@ -4,8 +4,11 @@ draw an area to shift about in. Also allows for multiple iterations of shifting.
 
 ## Output
 From
+
 ![](/input/github-logo.png)
+
 To
+
 ![](/out/outting-002468.png)
 
 ## Using
